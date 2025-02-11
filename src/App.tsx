@@ -19,23 +19,42 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategory, setNewCategory] = useState<string>("");
   const [taskInputs, setTaskInputs] = useState<{ [key: number]: string }>({});
+  const [error, setError] = useState<string | null>(null); // New: Handle errors
 
   useEffect(() => {
-    axios.get(API_URL).then(({ data }) => setCategories(data));
+    axios
+      .get(API_URL)
+      .then(({ data }) => setCategories(data))
+      .catch((err) => {
+        console.error("Error fetching categories:", err);
+        setError("Failed to load categories. Please try again.");
+      });
   }, []);
 
   const addCategory = () => {
     if (!newCategory.trim()) return;
-    axios.post(API_URL, { name: newCategory }).then(({ data }) => {
-      setCategories((prev) => [...prev, { ...data, tasks: [] }]);
-      setNewCategory("");
-    });
+    axios
+      .post(API_URL, { name: newCategory })
+      .then(({ data }) => {
+        setCategories((prev) => [...prev, { ...data, tasks: [] }]);
+        setNewCategory("");
+      })
+      .catch((err) => {
+        console.error("Error adding category:", err);
+        setError("Failed to add category.");
+      });
   };
 
   const deleteCategory = (id: number) => {
-    axios.delete(`${API_URL}/${id}`).then(() => {
-      setCategories((prev) => prev.filter((c) => c.id !== id));
-    });
+    axios
+      .delete(`${API_URL}/${id}`)
+      .then(() => {
+        setCategories((prev) => prev.filter((c) => c.id !== id));
+      })
+      .catch((err) => {
+        console.error("Error deleting category:", err);
+        setError("Failed to delete category.");
+      });
   };
 
   const addTask = (categoryId: number) => {
@@ -51,6 +70,10 @@ function App() {
           )
         );
         setTaskInputs((prev) => ({ ...prev, [categoryId]: "" }));
+      })
+      .catch((err) => {
+        console.error("Error adding task:", err);
+        setError("Failed to add task.");
       });
   };
 
@@ -60,9 +83,7 @@ function App() {
     categoryId: number
   ) => {
     axios
-      .patch(`${API_URL}/${categoryId}/tasks/${taskId}`, {
-        description: newDescription,
-      })
+      .put(`${API_URL}/tasks/${taskId}`, { description: newDescription })
       .then(({ data }) => {
         setCategories((prev) =>
           prev.map((c) =>
@@ -74,24 +95,35 @@ function App() {
               : c
           )
         );
+      })
+      .catch((err) => {
+        console.error("Error updating task:", err);
+        setError("Failed to update task.");
       });
   };
 
   const deleteTask = (taskId: number, categoryId: number) => {
-    axios.delete(`${API_URL}/${categoryId}/tasks/${taskId}`).then(() => {
-      setCategories((prev) =>
-        prev.map((c) =>
-          c.id === categoryId
-            ? { ...c, tasks: c.tasks.filter((t) => t.id !== taskId) }
-            : c
-        )
-      );
-    });
+    axios
+      .delete(`${API_URL}/tasks/${taskId}`)
+      .then(() => {
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === categoryId
+              ? { ...c, tasks: c.tasks.filter((t) => t.id !== taskId) }
+              : c
+          )
+        );
+      })
+      .catch((err) => {
+        console.error("Error deleting task:", err);
+        setError("Failed to delete task.");
+      });
   };
 
   return (
     <div>
       <h1>Task Manager</h1>
+      {error && <p style={{ color: "red" }}>{error}</p>} {/* Show errors */}
       <input
         type="text"
         value={newCategory}
@@ -99,7 +131,6 @@ function App() {
         placeholder="Add name of your category"
       />
       <button onClick={addCategory}>Add Category</button>
-
       {categories.map((category) => (
         <div key={category.id} className="category-box">
           <h2>{category.name}</h2>
