@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL = "http://localhost:5005/api/categories";
+const API_URL =
+  "https://task-manager-backend-eta-two.vercel.app/api/categories";
 
 interface Task {
   id: number;
