@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-
-// "https://task-manager-backend-eta-two.vercel.app";
+import "./App.css"; // Import our new styles
 
 interface Task {
   id: number;
@@ -18,7 +17,7 @@ function App() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategory, setNewCategory] = useState<string>("");
   const [taskInputs, setTaskInputs] = useState<{ [key: number]: string }>({});
-  const [error, setError] = useState<string | null>(null); // New: Handle errors
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     axios
@@ -33,9 +32,7 @@ function App() {
   const addCategory = () => {
     if (!newCategory.trim()) return;
     axios
-      .post(`${import.meta.env.VITE_API_URL}/api/categories`, {
-        name: newCategory,
-      })
+      .post(`${import.meta.env.VITE_API_URL}/api/categories`, { name: newCategory })
       .then(({ data }) => {
         setCategories((prev) => [...prev, { ...data, tasks: [] }]);
         setNewCategory("");
@@ -61,12 +58,9 @@ function App() {
   const addTask = (categoryId: number) => {
     if (!taskInputs[categoryId]?.trim()) return;
     axios
-      .post(
-        `${import.meta.env.VITE_API_URL}/api/categories/${categoryId}/tasks`,
-        {
-          description: taskInputs[categoryId],
-        }
-      )
+      .post(`${import.meta.env.VITE_API_URL}/api/categories/${categoryId}/tasks`, {
+        description: taskInputs[categoryId],
+      })
       .then(({ data }) => {
         setCategories((prev) =>
           prev.map((c) =>
@@ -81,11 +75,7 @@ function App() {
       });
   };
 
-  const editTask = (
-    taskId: number,
-    newDescription: string,
-    categoryId: number
-  ) => {
+  const editTask = (taskId: number, newDescription: string, categoryId: number) => {
     axios
       .put(`${import.meta.env.VITE_API_URL}/api/categories/tasks/${taskId}`, {
         description: newDescription,
@@ -127,22 +117,25 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="container">
       <h1>Task Manager</h1>
-      {error && <p style={{ color: "red" }}>{error}</p>} {/* Show errors */}
-      <input
-        type="text"
-        value={newCategory}
-        onChange={(e) => setNewCategory(e.target.value)}
-        placeholder="Add name of your category"
-      />
-      <button onClick={addCategory}>Add Category</button>
+      {error && <p className="error">{error}</p>}
+      <div className="input-group">
+        <input
+          type="text"
+          value={newCategory}
+          onChange={(e) => setNewCategory(e.target.value)}
+          placeholder="Add name of your category"
+        />
+        <button onClick={addCategory}>Add Category</button>
+      </div>
+
       {categories.map((category) => (
         <div key={category.id} className="category-box">
-          <h2>{category.name}</h2>
-          <button onClick={() => deleteCategory(category.id)}>
-            Delete this category
-          </button>
+          <div className="category-header">
+            <h2>{category.name}</h2>
+            <button onClick={() => deleteCategory(category.id)}>Delete this category</button>
+          </div>
 
           <table>
             <thead>
@@ -167,11 +160,7 @@ function App() {
                     />
                   </td>
                   <td>
-                    <button
-                      onClick={() =>
-                        editTask(task.id, task.description, category.id)
-                      }
-                    >
+                    <button onClick={() => editTask(task.id, task.description, category.id)}>
                       Edit
                     </button>
                   </td>
@@ -185,18 +174,20 @@ function App() {
             </tbody>
           </table>
 
-          <input
-            type="text"
-            value={taskInputs[category.id] || ""}
-            onChange={(e) =>
-              setTaskInputs((prev) => ({
-                ...prev,
-                [category.id]: e.target.value,
-              }))
-            }
-            placeholder="Add new task"
-          />
-          <button onClick={() => addTask(category.id)}>Add Task</button>
+          <div className="input-group">
+            <input
+              type="text"
+              value={taskInputs[category.id] || ""}
+              onChange={(e) =>
+                setTaskInputs((prev) => ({
+                  ...prev,
+                  [category.id]: e.target.value,
+                }))
+              }
+              placeholder="Add new task"
+            />
+            <button onClick={() => addTask(category.id)}>Add Task</button>
+          </div>
         </div>
       ))}
     </div>
