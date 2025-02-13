@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-const API_URL =
-  "https://task-manager-backend-eta-two.vercel.app/api/categories";
+// "https://task-manager-backend-eta-two.vercel.app";
 
 interface Task {
   id: number;
@@ -23,7 +22,7 @@ function App() {
 
   useEffect(() => {
     axios
-      .get(API_URL)
+      .get(`${import.meta.env.VITE_API_URL}/api/categories`)
       .then(({ data }) => setCategories(data))
       .catch((err) => {
         console.error("Error fetching categories:", err);
@@ -34,7 +33,9 @@ function App() {
   const addCategory = () => {
     if (!newCategory.trim()) return;
     axios
-      .post(API_URL, { name: newCategory })
+      .post(`${import.meta.env.VITE_API_URL}/api/categories`, {
+        name: newCategory,
+      })
       .then(({ data }) => {
         setCategories((prev) => [...prev, { ...data, tasks: [] }]);
         setNewCategory("");
@@ -47,7 +48,7 @@ function App() {
 
   const deleteCategory = (id: number) => {
     axios
-      .delete(`${API_URL}/${id}`)
+      .delete(`${import.meta.env.VITE_API_URL}/api/categories/${id}`)
       .then(() => {
         setCategories((prev) => prev.filter((c) => c.id !== id));
       })
@@ -60,9 +61,12 @@ function App() {
   const addTask = (categoryId: number) => {
     if (!taskInputs[categoryId]?.trim()) return;
     axios
-      .post(`${API_URL}/${categoryId}/tasks`, {
-        description: taskInputs[categoryId],
-      })
+      .post(
+        `${import.meta.env.VITE_API_URL}/api/categories/${categoryId}/tasks`,
+        {
+          description: taskInputs[categoryId],
+        }
+      )
       .then(({ data }) => {
         setCategories((prev) =>
           prev.map((c) =>
@@ -83,7 +87,9 @@ function App() {
     categoryId: number
   ) => {
     axios
-      .put(`${API_URL}/tasks/${taskId}`, { description: newDescription })
+      .put(`${import.meta.env.VITE_API_URL}/api/categories/tasks/${taskId}`, {
+        description: newDescription,
+      })
       .then(({ data }) => {
         setCategories((prev) =>
           prev.map((c) =>
@@ -104,7 +110,7 @@ function App() {
 
   const deleteTask = (taskId: number, categoryId: number) => {
     axios
-      .delete(`${API_URL}/tasks/${taskId}`)
+      .delete(`${import.meta.env.VITE_API_URL}/api/categories/tasks/${taskId}`)
       .then(() => {
         setCategories((prev) =>
           prev.map((c) =>
